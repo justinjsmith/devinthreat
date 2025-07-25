@@ -30,6 +30,7 @@ import {
   Paper,
   Link,
   Divider,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -46,16 +47,19 @@ import {
   Payment as PaymentIcon,
   PrivacyTip as PrivacyIcon,
   Language as LanguageIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 280;
+const collapsedDrawerWidth = 64;
 
 const navigationItems = [
-  { text: 'Overview', icon: <HomeIcon />, href: '#overview' },
-  { text: 'Threat Catalog', icon: <SecurityIcon />, href: '#threats' },
-  { text: 'NIST Controls', icon: <PolicyIcon />, href: '#nist' },
-  { text: 'MITRE ATT&CK', icon: <AssessmentIcon />, href: '#mitre' },
-  { text: 'Breach Reports', icon: <ReportIcon />, href: '#breaches' },
+  { text: 'Overview', icon: <HomeIcon />, view: 'overview' },
+  { text: 'Threat Catalog', icon: <SecurityIcon />, view: 'threats' },
+  { text: 'NIST Controls', icon: <PolicyIcon />, view: 'nist' },
+  { text: 'MITRE ATT&CK', icon: <AssessmentIcon />, view: 'mitre' },
+  { text: 'Breach Reports', icon: <ReportIcon />, view: 'breaches' },
 ];
 
 const filterAttributes = [
@@ -118,9 +122,19 @@ export default function Home() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
+  const [currentView, setCurrentView] = useState('overview');
+  const [drawerCollapsed, setDrawerCollapsed] = useState(false);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleDrawerCollapse = () => {
+    setDrawerCollapsed(!drawerCollapsed);
+  };
+
+  const handleViewChange = (view: string) => {
+    setCurrentView(view);
   };
 
   const handleFilterToggle = (value: string) => {
@@ -147,20 +161,31 @@ export default function Home() {
   const drawer = (
     <Box>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Navigation
-        </Typography>
+        {!drawerCollapsed && (
+          <Typography variant="h6" noWrap component="div">
+            Navigation
+          </Typography>
+        )}
+        <Box sx={{ flexGrow: 1 }} />
+        <IconButton onClick={handleDrawerCollapse} sx={{ display: { xs: 'none', sm: 'block' } }}>
+          {drawerCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </IconButton>
       </Toolbar>
       <Divider />
       <List>
         {navigationItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton component="a" href={item.href}>
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
+            <Tooltip title={drawerCollapsed ? item.text : ''} placement="right">
+              <ListItemButton 
+                onClick={() => handleViewChange(item.view)}
+                selected={currentView === item.view}
+              >
+                <ListItemIcon>
+                  {item.icon}
+                </ListItemIcon>
+                {!drawerCollapsed && <ListItemText primary={item.text} />}
+              </ListItemButton>
+            </Tooltip>
           </ListItem>
         ))}
       </List>
@@ -172,8 +197,9 @@ export default function Home() {
       <AppBar
         position="fixed"
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          width: { sm: `calc(100% - ${drawerCollapsed ? collapsedDrawerWidth : drawerWidth}px)` },
+          ml: { sm: `${drawerCollapsed ? collapsedDrawerWidth : drawerWidth}px` },
+          transition: 'width 0.3s ease, margin-left 0.3s ease',
         }}
       >
         <Toolbar>
@@ -187,14 +213,14 @@ export default function Home() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            Upshift Threat Intelligence Dashboard
+            Upshift Threats
           </Typography>
         </Toolbar>
       </AppBar>
 
       <Box
         component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        sx={{ width: { sm: drawerCollapsed ? collapsedDrawerWidth : drawerWidth }, flexShrink: { sm: 0 } }}
       >
         <Drawer
           variant="temporary"
@@ -214,7 +240,11 @@ export default function Home() {
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerCollapsed ? collapsedDrawerWidth : drawerWidth,
+              transition: 'width 0.3s ease',
+            },
           }}
           open
         >
@@ -227,203 +257,213 @@ export default function Home() {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          width: { sm: `calc(100% - ${drawerCollapsed ? collapsedDrawerWidth : drawerWidth}px)` },
+          transition: 'width 0.3s ease',
         }}
       >
         <Toolbar />
         
-        {/* Hero Section */}
-        <Box id="overview" sx={{ mb: 6 }}>
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography variant="h2" component="h1" gutterBottom>
-                Threat Intelligence Dashboard
-              </Typography>
-              <Typography variant="h5" color="text.secondary" sx={{ mb: 3 }}>
-                Comprehensive security threat analysis and mitigation guidance
-              </Typography>
-              <Box sx={{ 
-                width: '100%', 
-                height: 200, 
-                bgcolor: 'primary.light', 
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 3
-              }}>
-                <Typography variant="h4" color="white">
-                  🔗 Abstract Network Illustration
-                </Typography>
-              </Box>
-              <Typography variant="body1" color="text.secondary">
-                Monitor, analyze, and mitigate security threats with comprehensive intelligence 
-                mapped to industry-standard frameworks including NIST controls and MITRE ATT&CK.
-              </Typography>
-            </Box>
-          </Container>
-        </Box>
-
-        {/* Filter Section */}
-        <Box sx={{ mb: 4 }}>
-          <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom>
-              Filter Threats by Attributes
-            </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              {filterAttributes.map((attr) => (
-                <Chip
-                  key={attr.value}
-                  icon={attr.icon}
-                  label={attr.label}
-                  clickable
-                  color={selectedFilters.includes(attr.value) ? 'primary' : 'default'}
-                  onClick={() => handleFilterToggle(attr.value)}
-                  sx={{ mb: 1 }}
-                />
-              ))}
-            </Stack>
-          </Container>
-        </Box>
-
-        {/* Threat Catalog */}
-        <Box id="threats" sx={{ mb: 6 }}>
-          <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom>
-              Threat Catalog
-            </Typography>
-            <Stack spacing={3}>
-              {filteredThreats.map((threat) => (
-                <Card key={threat.id}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      {threat.icon}
-                      <Typography variant="h5" component="h3" sx={{ ml: 1 }}>
-                        {threat.title}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {threat.description}
+        {/* Render different views based on currentView */}
+        {currentView === 'overview' && (
+          <>
+            {/* Hero Section */}
+            <Box sx={{ mb: 6 }}>
+              <Container maxWidth="lg">
+                <Box sx={{ textAlign: 'center', mb: 4 }}>
+                  <Typography variant="h2" component="h1" gutterBottom>
+                    Threat Intelligence Dashboard
+                  </Typography>
+                  <Typography variant="h5" color="text.secondary" sx={{ mb: 3 }}>
+                    Comprehensive security threat analysis and mitigation guidance
+                  </Typography>
+                  <Box sx={{ 
+                    width: '100%', 
+                    height: 200, 
+                    bgcolor: 'primary.light', 
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 3
+                  }}>
+                    <Typography variant="h4" color="white">
+                      🔗 Abstract Network Illustration
                     </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                      {threat.attributes.map((attr) => (
-                        <Chip key={attr} label={attr} size="small" variant="outlined" />
-                      ))}
-                    </Stack>
-                  </CardContent>
-                  <CardActions>
-                    <Button
-                      onClick={() => handleCardExpand(threat.id)}
-                      endIcon={expandedCards.includes(threat.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                    >
-                      Details
-                    </Button>
-                  </CardActions>
-                  <Collapse in={expandedCards.includes(threat.id)} timeout="auto" unmountOnExit>
-                    <CardContent sx={{ pt: 0 }}>
-                      <Typography variant="h6" gutterBottom>
-                        NIST Control Families
-                      </Typography>
-                      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                        {threat.nistControls.map((control) => (
-                          <Chip key={control} label={control} size="small" color="secondary" />
-                        ))}
-                      </Stack>
-                      
-                      <Typography variant="h6" gutterBottom>
-                        MITRE ATT&CK Techniques
-                      </Typography>
-                      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                        {threat.mitreAttack.map((technique) => (
-                          <Chip key={technique} label={technique} size="small" color="info" />
-                        ))}
-                      </Stack>
-                      
-                      <Typography variant="h6" gutterBottom>
-                        Example Breach Reports
-                      </Typography>
-                      <Box component="ul" sx={{ pl: 2 }}>
-                        {threat.breachExamples.map((example, index) => (
-                          <Typography key={index} component="li" variant="body2" sx={{ mb: 1 }}>
-                            {example}
-                          </Typography>
-                        ))}
-                      </Box>
-                    </CardContent>
-                  </Collapse>
-                </Card>
-              ))}
-            </Stack>
-          </Container>
-        </Box>
+                  </Box>
+                  <Typography variant="body1" color="text.secondary">
+                    Monitor, analyze, and mitigate security threats with comprehensive intelligence 
+                    mapped to industry-standard frameworks including NIST controls and MITRE ATT&CK.
+                  </Typography>
+                </Box>
+              </Container>
+            </Box>
 
-        {/* NIST Controls Section */}
-        <Box id="nist" sx={{ mb: 6 }}>
-          <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom>
-              NIST Control Families Overview
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 3 }}>
-              The National Institute of Standards and Technology (NIST) provides a comprehensive 
-              framework for managing cybersecurity risk through organized control families.
-            </Typography>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>Family</strong></TableCell>
-                    <TableCell><strong>Name</strong></TableCell>
-                    <TableCell><strong>Description</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {nistControlFamilies.map((family) => (
-                    <TableRow key={family.family}>
-                      <TableCell>{family.family}</TableCell>
-                      <TableCell>{family.name}</TableCell>
-                      <TableCell>{family.description}</TableCell>
-                    </TableRow>
+            {/* Filter Section */}
+            <Box sx={{ mb: 4 }}>
+              <Container maxWidth="lg">
+                <Typography variant="h4" gutterBottom>
+                  Filter Threats by Attributes
+                </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  {filterAttributes.map((attr) => (
+                    <Chip
+                      key={attr.value}
+                      icon={attr.icon}
+                      label={attr.label}
+                      clickable
+                      color={selectedFilters.includes(attr.value) ? 'primary' : 'default'}
+                      onClick={() => handleFilterToggle(attr.value)}
+                      sx={{ mb: 1 }}
+                    />
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Container>
-        </Box>
+                </Stack>
+              </Container>
+            </Box>
+          </>
+        )}
 
-        {/* MITRE ATT&CK Section */}
-        <Box id="mitre" sx={{ mb: 6 }}>
-          <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom>
-              MITRE ATT&CK Framework
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              MITRE ATT&CK is a globally-accessible knowledge base of adversary tactics and techniques 
-              based on real-world observations. It provides a common taxonomy for cybersecurity professionals.
-            </Typography>
-            <Link 
-              href="https://attack.mitre.org/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              variant="body1"
-            >
-              Visit the official MITRE ATT&CK website →
-            </Link>
-          </Container>
-        </Box>
+        {currentView === 'threats' && (
+          <Box sx={{ mb: 6 }}>
+            <Container maxWidth="lg">
+              <Typography variant="h4" gutterBottom>
+                Threat Catalog
+              </Typography>
+              <Stack spacing={3}>
+                {filteredThreats.map((threat) => (
+                  <Card key={threat.id}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        {threat.icon}
+                        <Typography variant="h5" component="h3" sx={{ ml: 1 }}>
+                          {threat.title}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {threat.description}
+                      </Typography>
+                      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                        {threat.attributes.map((attr) => (
+                          <Chip key={attr} label={attr} size="small" variant="outlined" />
+                        ))}
+                      </Stack>
+                    </CardContent>
+                    <CardActions>
+                      <Button
+                        onClick={() => handleCardExpand(threat.id)}
+                        endIcon={expandedCards.includes(threat.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      >
+                        Details
+                      </Button>
+                    </CardActions>
+                    <Collapse in={expandedCards.includes(threat.id)} timeout="auto" unmountOnExit>
+                      <CardContent sx={{ pt: 0 }}>
+                        <Typography variant="h6" gutterBottom>
+                          NIST Control Families
+                        </Typography>
+                        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                          {threat.nistControls.map((control) => (
+                            <Chip key={control} label={control} size="small" color="secondary" />
+                          ))}
+                        </Stack>
+                        
+                        <Typography variant="h6" gutterBottom>
+                          MITRE ATT&CK Techniques
+                        </Typography>
+                        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                          {threat.mitreAttack.map((technique) => (
+                            <Chip key={technique} label={technique} size="small" color="info" />
+                          ))}
+                        </Stack>
+                        
+                        <Typography variant="h6" gutterBottom>
+                          Example Breach Reports
+                        </Typography>
+                        <Box component="ul" sx={{ pl: 2 }}>
+                          {threat.breachExamples.map((example, index) => (
+                            <Typography key={index} component="li" variant="body2" sx={{ mb: 1 }}>
+                              {example}
+                            </Typography>
+                          ))}
+                        </Box>
+                      </CardContent>
+                    </Collapse>
+                  </Card>
+                ))}
+              </Stack>
+            </Container>
+          </Box>
+        )}
 
-        {/* Breach Reports Section */}
-        <Box id="breaches" sx={{ mb: 6 }}>
-          <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom>
-              Why Track Breach Reports?
-            </Typography>
-            <Typography variant="body1">
-              Analyzing real-world security breaches provides valuable insights into attack patterns, 
-              common vulnerabilities, and effective mitigation strategies. By studying historical incidents, 
-              organizations can better prepare their defenses and understand the evolving threat landscape.
-            </Typography>
-          </Container>
-        </Box>
+        {currentView === 'nist' && (
+          <Box sx={{ mb: 6 }}>
+            <Container maxWidth="lg">
+              <Typography variant="h4" gutterBottom>
+                NIST Control Families Overview
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 3 }}>
+                The National Institute of Standards and Technology (NIST) provides a comprehensive 
+                framework for managing cybersecurity risk through organized control families.
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong>Family</strong></TableCell>
+                      <TableCell><strong>Name</strong></TableCell>
+                      <TableCell><strong>Description</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {nistControlFamilies.map((family) => (
+                      <TableRow key={family.family}>
+                        <TableCell>{family.family}</TableCell>
+                        <TableCell>{family.name}</TableCell>
+                        <TableCell>{family.description}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Container>
+          </Box>
+        )}
+
+        {currentView === 'mitre' && (
+          <Box sx={{ mb: 6 }}>
+            <Container maxWidth="lg">
+              <Typography variant="h4" gutterBottom>
+                MITRE ATT&CK Framework
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                MITRE ATT&CK is a globally-accessible knowledge base of adversary tactics and techniques 
+                based on real-world observations. It provides a common taxonomy for cybersecurity professionals.
+              </Typography>
+              <Link 
+                href="https://attack.mitre.org/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                variant="body1"
+              >
+                Visit the official MITRE ATT&CK website →
+              </Link>
+            </Container>
+          </Box>
+        )}
+
+        {currentView === 'breaches' && (
+          <Box sx={{ mb: 6 }}>
+            <Container maxWidth="lg">
+              <Typography variant="h4" gutterBottom>
+                Why Track Breach Reports?
+              </Typography>
+              <Typography variant="body1">
+                Analyzing real-world security breaches provides valuable insights into attack patterns, 
+                common vulnerabilities, and effective mitigation strategies. By studying historical incidents, 
+                organizations can better prepare their defenses and understand the evolving threat landscape.
+              </Typography>
+            </Container>
+          </Box>
+        )}
       </Box>
     </Box>
   );
